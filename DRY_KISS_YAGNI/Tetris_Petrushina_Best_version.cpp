@@ -13,7 +13,7 @@
 using namespace std;
 
 /*
-Следую KISS, обозначаю клетки не как непонятные цифры, а как элементы из enum
+KISS: обозначаю что в клетке не через рандомные цифры, а как понятные элементы из enum
 */
 enum Cell {
     Hidden = 0,
@@ -42,6 +42,11 @@ const map<Cell, string> cell_color = {
     {Cell::Border, "247"}
 };
 
+/*
+DRY: Вместо огромного switch для отрисовки клетки нужного цвета,
+использую словарь с получением цвета по элементу Cell:: enum.
+В эту функцию просто передается тип клетки, и она ее отрисовывает
+*/
 void print_cell(const Cell& cell) {
     if (cell == Cell::Empty) {
         cout << "  ";
@@ -50,14 +55,15 @@ void print_cell(const Cell& cell) {
     }
 }
 
-/*
-Следую DRY, все данные для figure не разбрасываю по всей программе, а храню централизованно тут
-*/
 struct Figure {
     vector<vector<int>> model;
     Cell color;
 };
 
+/*
+DRY: Вместо огромного switch с заполнением данных о фигурах, использую один вектор с перечеслением всех фигур.
+Нужную можно получить по индексу, а работа с ними единообразна
+*/
 const vector<Figure> FIGURES = {
     {{{0, 1, 0},
       {1, 1, 1}}, FigureT},
@@ -80,27 +86,23 @@ const vector<Figure> FIGURES = {
       {1, 1}}, FigureO}
 };
 
-// YAGNI - я убрала из конструкторов классов все лишние переменные, которые скорее всего всегда будут браться те, что по умолчанию
+/*
+YAGNI: убрала из конструкторов классов все лишние переменные
+Для маштабируемости было бы хорошо задавание кол-ва слоев и колонок, 
+но бы принимаем, что текущая версия - финальная
+И тогда такое задавание не имеет смысла, ведь всегда берется значение по умолчанию
+*/
 class Map {
 private:
-    int x_map;
-    int y_map;
-    int buffer_layers = 2;
+    constexpr int x_map = 5;
+    constexpr int y_map = 7;
+    constexpr int buffer_layers = 2;
 
     vector<vector<Cell>> map;
 
 public:
-    Map(
-        int height = 7,
-        int width = 5
-    ): 
-        x_map(width),
-        y_map(height)
+    Map(): 
     {
-        if (height <= 0 || width <= 0) {
-            cout << "Wrong map dimensions!" << endl;
-            exit(1);
-        }
         make_empty_map(map, y_map + buffer_layers, x_map);
     }
 
@@ -133,7 +135,9 @@ public:
         int target_y = y_map + buffer_layers - 1;
         int count_layers = 0;
         for (int y = target_y; y >= buffer_layers; --y) {
-            // YAGNI и KISS, внесто того, чтобы писать свою функцию на один раз, используем из стандартной библиотеки
+            /*
+            KISS: Весто того, чтобы писать свою функцию на один раз, используем из стандартной библиотеки
+            */
             const bool full = all_of(map[y].begin(), map[y].end(), is_fixed);
             if (full) {
                 count_layers++;
@@ -149,10 +153,14 @@ public:
         return cell >= Cell::FigureT && cell <= Cell::FigureO;
     }
 
-    void make_empty_map(vector<vector<Cell>>& some_map, int y_size, int x_size){
-        some_map.resize(y_size);
-        for(int i = 0; i<y_size; i++){
-            some_map[i] = vector<Cell>(x_size, (i < buffer_layers) ? Cell::Hidden : Cell::Empty);
+    /*
+    YAGNI: Нам не нужна функция для построения чистой карты с задаваемыми параметрами, 
+    нам нужна функция для создания пустой карты с константными параметрами 5 x 7
+    */
+    void make_empty_map(vector<vector<Cell>>& some_map){
+        some_map.resize(y_map);
+        for(int i = 0; i<y_map; i++){
+            some_map[i] = vector<Cell>(x_map, (i < buffer_layers) ? Cell::Hidden : Cell::Empty);
         }
     }
 
@@ -382,7 +390,10 @@ int main()
         cout<<"Очков набранно " << engine.get_points() << endl;
         cout<<"Шагов осталось " << stepCounter.get_steps() << endl;
         cout<<"Меньше шагов через " << stepCounter.get_timer() << endl;
-        if(!engine.get_figure_exist()){ // KISS: Зачем проверять false, через == 0, если можно проверить через !
+        /*
+        KISS: Зачем проверять false, через == 0, если можно проверить через !
+        */
+        if(!engine.get_figure_exist()){
             engine.make_figure();
             stepCounter.reset_steps();
         }
@@ -410,7 +421,11 @@ int main()
                         break;
                     }
                     case 's':{
-                        // KISS: Тут зачем-то отдельно были расчеты с таймером и шагами, зачем уменьшать их только тут, непонятно
+                        /*
+                        KISS: Раньше расчеты с уменьшением кол-ва шагов были очень сложно написаны,
+                        еле можно было разобрать что к чему
+                        Теперь они были вынесены в отдельный класс, и понять что происходит проще
+                        */
                         engine.fall();
                         break;
                     }
