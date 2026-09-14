@@ -100,6 +100,22 @@ private:
 
     vector<vector<Cell>> map;
 
+    template <typename Action>
+    void for_each_figure_cell(
+        const Figure& figure,
+        int y_coords,
+        int x_coords,
+        Action action
+    ) {
+        for (int y = 0; y < figure.model.size(); ++y) {
+            for (int x = 0; x < figure.model[y].size(); ++x) {
+                if (figure.model[y][x]) {
+                    action(y_coords + y, x_coords + x);
+                }
+            }
+        }
+    }
+
 public:
     Map()
     {
@@ -181,25 +197,21 @@ public:
         return true;
     }
 
+    /*
+    DRY: Зачем повторять обход всех клеток и в draw_figure и erase_figure?
+    Вынесем его в отдельную функцию for_each_figure_cell
+    Туда будем просто передавать, что делать с клеткой
+    */
     void draw_figure(const Figure& figure, int y_coords, int x_coords, Cell cell) {
-        for (int y = 0; y < figure.model.size(); ++y) {
-            for (int x = 0; x < figure.model[y].size(); ++x) {
-                if (figure.model[y][x]) {
-                    map[y_coords + y][x_coords + x] = cell;
-                }
-            }
-        }
+        for_each_figure_cell(figure, y_coords, x_coords, [this, cell](int y, int x) {
+            map[y][x] = cell;
+        });
     }
 
     void erase_figure(const Figure& figure, int y_coords, int x_coords) {
-        for (int y = 0; y < figure.model.size(); ++y) {
-            for (int x = 0; x < figure.model[y].size(); ++x) {
-                if (figure.model[y][x]) {
-                    map[y_coords + y][x_coords + x] =
-                        y_coords + y < buffer_layers ? Cell::Hidden : Cell::Empty;
-                }
-            }
-        }
+        for_each_figure_cell(figure, y_coords, x_coords, [this](int y, int x) {
+            map[y][x] = y < buffer_layers ? Cell::Hidden : Cell::Empty;
+        });
     }
 
     // Возвращаем, живы ли еще
