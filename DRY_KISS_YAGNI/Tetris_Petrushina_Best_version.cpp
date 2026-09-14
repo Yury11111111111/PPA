@@ -457,14 +457,12 @@ int main()
             engine.make_figure();
             stepCounter.reset_steps();
         }
-        else{
-            if(stepCounter.should_force_fall()){
+        else if(stepCounter.should_force_fall()){
                 engine.fall();
-            }
-            else{
-                if (!(cin >> move)) { return 0; }
-                process_command(engine, move);
-            }
+        }
+        else{
+            if (!(cin >> move)) { return 0; }
+            process_command(engine, move);
         }
         engine.end_iteration();
     }
