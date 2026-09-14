@@ -360,35 +360,45 @@ KISS: Вынесла таймер в отдельный класс, а то ин
 /*
 YAGNI: Возможность задавать пармаметры конфигурации не нужна, значения всегда берутся по умолчанию
 */
+/*
+KISS: Улучшила реализацию таймера, все что можно убрать внутрь убрала
+*/
 class StepsCounter {
-    int upper_bound_timer = 15; // Раз в сколько кол-во шагов уменьшается
-    int upper_bound_steps = 5; //Сколько шагов по горизонтали можно сделать
+    static constexpr int difficulty_interval = 15;
+    static constexpr int initial_step_limit = 5;
 
-    int current_timer = upper_bound_timer; //Текущий таймер для игры
-    int current_steps = upper_bound_steps; //Сколько шагов по горизонтали можно сделать сейчас
-public:
-    void tick() { current_timer--; }
+    int iterations_until_difficulty_increase = difficulty_interval;
+    int step_limit = initial_step_limit;
+    int remaining_steps = step_limit;
 
-    int get_timer() { return current_timer; }
-    int get_steps() { return current_steps; }
+    void update_difficulty() {
+        iterations_until_difficulty_increase--;
+        if (iterations_until_difficulty_increase > 0) {
+            return;
+        }
 
-    void reset_steps() {
-        current_steps = upper_bound_steps;
+        step_limit = max(1, step_limit - 1);
+        remaining_steps = min(remaining_steps, step_limit);
+        iterations_until_difficulty_increase = difficulty_interval;
     }
 
-    // Возвращаем, произошло ли принудительное падение
-    bool make_step(){
-        if(current_timer <= 0){
-            upper_bound_steps = max(1, upper_bound_steps - 1);
-            current_timer = upper_bound_timer;
-            current_steps = min(current_steps, upper_bound_steps);
-        }
-        tick();
-        if(current_steps <= 0){
-            current_steps = upper_bound_steps;
+public:
+    int get_timer() const { return iterations_until_difficulty_increase; }
+    int get_steps() const { return remaining_steps; }
+
+    void reset_steps() {
+        remaining_steps = step_limit;
+    }
+
+    bool should_force_fall() {
+        update_difficulty();
+
+        if (remaining_steps == 0) {
+            reset_steps();
             return true;
         }
-        current_steps--;
+
+        remaining_steps--;
         return false;
     }
 };
@@ -415,7 +425,7 @@ int main()
             stepCounter.reset_steps();
         }
         else{
-            if(stepCounter.make_step()){
+            if(stepCounter.should_force_fall()){
                 engine.fall();
             }
             else{
