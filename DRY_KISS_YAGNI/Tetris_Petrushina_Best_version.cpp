@@ -139,6 +139,13 @@ private:
         }
     }
 
+    /*
+    YAGNI: Эта функция вызывается только внутри класса, она не нужна как public
+    */
+    static bool is_fixed(Cell cell) {
+        return cell >= Cell::FigureT && cell <= Cell::FigureO;
+    }
+
 public:
     Map()
     {
@@ -183,10 +190,6 @@ public:
         }
         map = cleared_map;
         return count_layers;
-    }
-
-    static bool is_fixed(Cell cell) {
-        return cell >= Cell::FigureT && cell <= Cell::FigureO;
     }
 
     bool can_place(const vector<vector<int>>& candidate, int left, int top) const {
@@ -355,6 +358,33 @@ public:
 };
 
 /*
+KISS: Вынесла обработку команд в отдельную функцию
+Это дало меньшую вложенность, а значит понимать проще
+*/
+void process_command(Engine& engine, char command) {
+    switch (command) {
+        case 'd':
+            engine.move(1);
+            break;
+        case 'a':
+            engine.move(-1);
+            break;
+        case 'q':
+            engine.turn_left();
+            break;
+        case 'e':
+            engine.turn_right();
+            break;
+        case 's':
+            engine.fall();
+            break;
+        case 'w':
+            engine.fall_down();
+            break;
+    }
+}
+
+/*
 KISS: Вынесла таймер в отдельный класс, а то иначе понять что происходит было трудно
 */
 /*
@@ -406,14 +436,17 @@ public:
 int main()
 {
     Engine engine;
-
     StepsCounter stepCounter;
 
     char move;
     cout << "A - влево, S - Вниз на 1 слой, D - Вправо, W - В самый низ" << endl;
+    cout << "Q - повернуть фигуру влево, E - повернуть фигуру вправо" << endl;
     cout << "Введите что-нибудь, чтобы продолжить"<<endl;
     if (!(cin >> move)) { return 0; }
-    while(engine.get_alive() == 1){
+    /*
+    KISS: Зачем проверять true, через == 1, если можно проверить через !
+    */
+    while(engine.get_alive()){
         cout<<"Очков набранно " << engine.get_points() << endl;
         cout<<"Шагов осталось " << stepCounter.get_steps() << endl;
         cout<<"Меньше шагов через " << stepCounter.get_timer() << endl;
@@ -430,37 +463,7 @@ int main()
             }
             else{
                 if (!(cin >> move)) { return 0; }
-                switch(move){
-                    case 'd':{
-                        engine.move(1);
-                        break;
-                    }
-                    case 'a':{
-                        engine.move(-1);
-                        break;
-                    }
-                    case 'q':{
-                        engine.turn_left();
-                        break;
-                    }
-                    case 'e':{
-                        engine.turn_right();
-                        break;
-                    }
-                    case 's':{
-                        /*
-                        KISS: Раньше расчеты с уменьшением кол-ва шагов были очень сложно написаны,
-                        еле можно было разобрать что к чему
-                        Теперь они были вынесены в отдельный класс, и понять что происходит проще
-                        */
-                        engine.fall();
-                        break;
-                    }
-                    case 'w':{
-                        engine.fall_down();
-                    }
-                }
-                
+                process_command(engine, move);
             }
         }
         engine.end_iteration();
