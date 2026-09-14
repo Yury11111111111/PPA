@@ -168,9 +168,6 @@ public:
     int clear_full_layers() {
         vector<vector<Cell>> cleared_map;
         make_empty_map(cleared_map);
-        for (int y = 0; y < buffer_layers; ++y) {
-            cleared_map[y] = map[y];
-        }
         int target_y = y_map + buffer_layers - 1;
         int count_layers = 0;
         for (int y = target_y; y >= buffer_layers; --y) {
@@ -336,6 +333,7 @@ public:
             if (map.fix_figure(figure, x_coords, y_coords)) {
                 figure_exist = false;
                 points += points_per_figure;
+                points += map.clear_full_layers() * points_per_layer;
             } else {
                 alive = false;
             }
@@ -351,7 +349,6 @@ public:
     }
 
     void end_iteration() {
-        points += map.clear_full_layers() * points_per_layer;
         system("clear");
         map.print_map();
     }
