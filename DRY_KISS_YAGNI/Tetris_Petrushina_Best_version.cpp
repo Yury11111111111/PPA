@@ -394,8 +394,8 @@ YAGNI: Возможность задавать пармаметры конфиг
 KISS: Улучшила реализацию таймера, все что можно убрать внутрь убрала
 */
 class StepsCounter {
-    static constexpr int difficulty_interval = 15;
-    static constexpr int initial_step_limit = 5;
+    static constexpr int difficulty_interval = 8;
+    static constexpr int initial_step_limit = 10;
 
     int iterations_until_difficulty_increase = difficulty_interval;
     int step_limit = initial_step_limit;
