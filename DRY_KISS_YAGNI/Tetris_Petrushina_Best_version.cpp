@@ -100,17 +100,25 @@ private:
 
     vector<vector<Cell>> map;
 
+    /*
+    KISS: В разных функциях был разный порядок x и y
+    Из-за этого было трудно понимать логику, постоянно путалась как правильно в функцию передавать
+    Я сделала везде всегда сначала x потом y
+    */
     template <typename Action>
     void for_each_figure_cell(
         const Figure& figure,
-        int y_coords,
         int x_coords,
+        int y_coords,
         Action action
     ) {
-        for (int y = 0; y < figure.model.size(); ++y) {
-            for (int x = 0; x < figure.model[y].size(); ++x) {
+        for (size_t y = 0; y < figure.model.size(); ++y) {
+            for (size_t x = 0; x < figure.model[y].size(); ++x) {
                 if (figure.model[y][x]) {
-                    action(y_coords + y, x_coords + x);
+                    action(
+                        x_coords + static_cast<int>(x),
+                        y_coords + static_cast<int>(y)
+                    );
                 }
             }
         }
@@ -206,14 +214,14 @@ public:
     Вынесем его в отдельную функцию for_each_figure_cell
     Туда будем просто передавать, что делать с клеткой
     */
-    void draw_figure(const Figure& figure, int y_coords, int x_coords, Cell cell) {
-        for_each_figure_cell(figure, y_coords, x_coords, [this, cell](int y, int x) {
+    void draw_figure(const Figure& figure, int x_coords, int y_coords, Cell cell) {
+        for_each_figure_cell(figure, x_coords, y_coords, [this, cell](int x, int y) {
             map[y][x] = cell;
         });
     }
 
-    void erase_figure(const Figure& figure, int y_coords, int x_coords) {
-        for_each_figure_cell(figure, y_coords, x_coords, [this](int y, int x) {
+    void erase_figure(const Figure& figure, int x_coords, int y_coords) {
+        for_each_figure_cell(figure, x_coords, y_coords, [this](int x, int y) {
             map[y][x] = y < buffer_layers ? Cell::Hidden : Cell::Empty;
         });
     }
@@ -223,7 +231,7 @@ public:
         if (y_coords < buffer_layers) {
             return false;
         }
-        draw_figure(figure, y_coords, x_coords, figure.color);
+        draw_figure(figure, x_coords, y_coords, figure.color);
         return true;
     }
 };
@@ -267,9 +275,9 @@ class Engine {
         }
         // Если поворот невозможен, оставляем фигуру в том же положении что и до этого, иначе:
         if (map.can_place(rotated, x_coords, y_coords)) {
-            map.erase_figure(figure, y_coords, x_coords);
+            map.erase_figure(figure, x_coords, y_coords);
             figure.model = rotated;
-            map.draw_figure(figure, y_coords, x_coords, Cell::Active);
+            map.draw_figure(figure, x_coords, y_coords, Cell::Active);
         }
     }
 
@@ -277,10 +285,10 @@ class Engine {
         if (!map.can_place(figure.model, x_coords + dx, y_coords + dy)) {
             return false;
         }
-        map.erase_figure(figure, y_coords, x_coords);
+        map.erase_figure(figure, x_coords, y_coords);
         x_coords += dx;
         y_coords += dy;
-        map.draw_figure(figure, y_coords, x_coords, Cell::Active);
+        map.draw_figure(figure, x_coords, y_coords, Cell::Active);
         return true;
     }
 
@@ -302,7 +310,7 @@ public:
         }
         step = (step + 1) % FIGURES.size();
         figure_exist = true;
-        map.draw_figure(figure, y_coords, x_coords, Cell::Active);
+        map.draw_figure(figure, x_coords, y_coords, Cell::Active);
     }
 
     // direction: влево = -1, вправо = 1
