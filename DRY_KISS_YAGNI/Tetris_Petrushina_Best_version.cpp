@@ -361,11 +361,11 @@ KISS: Вынесла таймер в отдельный класс, а то ин
 YAGNI: Возможность задавать пармаметры конфигурации не нужна, значения всегда берутся по умолчанию
 */
 class StepsCounter {
-    int upper_bound_timer = 5; // Раз в сколько кол-во шагов уменьшается
+    int upper_bound_timer = 15; // Раз в сколько кол-во шагов уменьшается
     int upper_bound_steps = 5; //Сколько шагов по горизонтали можно сделать
 
-    int current_timer = 15; //Текущий таймер для игры
-    int current_steps = 15; //Сколько шагов по горизонтали можно сделать сейчас
+    int current_timer = upper_bound_timer; //Текущий таймер для игры
+    int current_steps = upper_bound_steps; //Сколько шагов по горизонтали можно сделать сейчас
 public:
     void tick() { current_timer--; }
 
