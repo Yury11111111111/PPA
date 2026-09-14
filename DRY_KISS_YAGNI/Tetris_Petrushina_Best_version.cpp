@@ -116,6 +116,21 @@ private:
         }
     }
 
+    /*
+    YAGNI: Нам не нужна функция для построения чистой карты с задаваемыми параметрами, 
+    нам нужна функция для создания пустой карты с константными параметрами 5 x 7
+    */
+    /*
+    YAGNI: Изначально функция была public, но это лишнее
+    Достаточно чтобы она была private
+    */
+    void make_empty_map(vector<vector<Cell>>& some_map){
+        some_map.resize(y_map+buffer_layers);
+        for(int i = 0; i<y_map+buffer_layers; i++){
+            some_map[i] = vector<Cell>(x_map, (i < buffer_layers) ? Cell::Hidden : Cell::Empty);
+        }
+    }
+
 public:
     Map()
     {
@@ -167,17 +182,6 @@ public:
 
     static bool is_fixed(Cell cell) {
         return cell >= Cell::FigureT && cell <= Cell::FigureO;
-    }
-
-    /*
-    YAGNI: Нам не нужна функция для построения чистой карты с задаваемыми параметрами, 
-    нам нужна функция для создания пустой карты с константными параметрами 5 x 7
-    */
-    void make_empty_map(vector<vector<Cell>>& some_map){
-        some_map.resize(y_map+buffer_layers);
-        for(int i = 0; i<y_map+buffer_layers; i++){
-            some_map[i] = vector<Cell>(x_map, (i < buffer_layers) ? Cell::Hidden : Cell::Empty);
-        }
     }
 
     bool can_place(const vector<vector<int>>& candidate, int left, int top) const {
@@ -345,23 +349,19 @@ public:
     }
 };
 
-// Ради KISS я вынесла таймер в отдельный класс, а то иначе понять что происходит было трудно
+/*
+KISS: Вынесла таймер в отдельный класс, а то иначе понять что происходит было трудно
+*/
+/*
+YAGNI: Возможность задавать пармаметры конфигурации не нужна, значения всегда берутся по умолчанию
+*/
 class StepsCounter {
-    int upper_bound_timer; // Раз в сколько кол-во шагов уменьшается
-    int upper_bound_steps; //Сколько шагов по горизонтали можно сделать
+    int upper_bound_timer = 5; // Раз в сколько кол-во шагов уменьшается
+    int upper_bound_steps = 5; //Сколько шагов по горизонтали можно сделать
 
-    int current_timer; //Текущий таймер для игры
-    int current_steps; //Сколько шагов по горизонтали можно сделать сейчас
+    int current_timer = 15; //Текущий таймер для игры
+    int current_steps = 15; //Сколько шагов по горизонтали можно сделать сейчас
 public:
-    StepsCounter(
-        int input_steps = 5,
-        int input_timer = 15
-    ) : upper_bound_timer(input_timer),
-        upper_bound_steps(input_steps),
-        current_timer(input_timer),
-        current_steps(input_steps)
-    {}
-
     void tick() { current_timer--; }
 
     int get_timer() { return current_timer; }
