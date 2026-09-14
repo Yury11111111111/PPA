@@ -94,16 +94,16 @@ YAGNI: убрала из конструкторов классов все лиш
 */
 class Map {
 private:
-    constexpr int x_map = 5;
-    constexpr int y_map = 7;
-    constexpr int buffer_layers = 2;
+    static constexpr int x_map = 5;
+    static constexpr int y_map = 7;
+    static constexpr int buffer_layers = 2;
 
     vector<vector<Cell>> map;
 
 public:
-    Map(): 
+    Map()
     {
-        make_empty_map(map, y_map + buffer_layers, x_map);
+        make_empty_map(map);
     }
 
     void print_map() {
@@ -128,7 +128,7 @@ public:
 
     int clear_full_layers() {
         vector<vector<Cell>> cleared_map;
-        make_empty_map(cleared_map, y_map + buffer_layers, x_map);
+        make_empty_map(cleared_map);
         for (int y = 0; y < buffer_layers; ++y) {
             cleared_map[y] = map[y];
         }
@@ -158,8 +158,8 @@ public:
     нам нужна функция для создания пустой карты с константными параметрами 5 x 7
     */
     void make_empty_map(vector<vector<Cell>>& some_map){
-        some_map.resize(y_map);
-        for(int i = 0; i<y_map; i++){
+        some_map.resize(y_map+buffer_layers);
+        for(int i = 0; i<y_map+buffer_layers; i++){
             some_map[i] = vector<Cell>(x_map, (i < buffer_layers) ? Cell::Hidden : Cell::Empty);
         }
     }
