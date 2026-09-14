@@ -439,8 +439,8 @@ int main()
     StepsCounter stepCounter;
 
     char move;
-    cout << "A - влево, S - Вниз на 1 слой, D - Вправо, W - В самый низ" << endl;
-    cout << "Q - повернуть фигуру влево, E - повернуть фигуру вправо" << endl;
+    cout << "a - влево, s - Вниз на 1 слой, d - Вправо, w - В самый низ" << endl;
+    cout << "q - повернуть фигуру влево, e - повернуть фигуру вправо" << endl;
     cout << "Введите что-нибудь, чтобы продолжить"<<endl;
     if (!(cin >> move)) { return 0; }
     /*
@@ -458,7 +458,7 @@ int main()
             stepCounter.reset_steps();
         }
         else if(stepCounter.should_force_fall()){
-                engine.fall();
+            engine.fall();
         }
         else{
             if (!(cin >> move)) { return 0; }
