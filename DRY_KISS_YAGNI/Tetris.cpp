@@ -1,424 +1,506 @@
+/*
+printf("\033[48:5:160m  \033[m\n"); - красный Z
+printf("\033[48:5:208m  \033[m\n"); - оранжевый L
+printf("\033[48:5:220m  \033[m\n"); - желтый O
+printf("\033[48:5:75m  \033[m\n"); - синий J
+printf("\033[48:5:105m  \033[m\n"); - фиолетовый T
+printf("\033[48:5:123m  \033[m\n"); - голубой I
+printf("\033[48:5:10m  \033[m\n"); - зеленый S
+printf("\033[48:5:255m  \033[m\n"); - белый
+printf("\033[48:5:247m  \033[m"); - серый
+printf("\033[48:5:238m  \033[m"); - темно-серый
+*/
+
 #include <iostream>
 #include <vector>
-#include <algorithm> // all_of, min, max
-#include <cstdlib> // system("clear")
-#include <map>
-#include <string>
+#include <stdio.h>
 
 using namespace std;
 
-/*
-Следую KISS, обозначаем клетки не как непонятные цифры, а как элементы из enum
-*/
-enum Cell {
-    Hidden = 0,
-    Empty = 1,
-    Active = 2,
-    FigureT = 3,
-    FigureS = 4,
-    FigureZ = 5,
-    FigureL = 6,
-    FigureJ = 7,
-    FigureI = 8,
-    FigureO = 9,
-    Border = 10
-};
-
-const map<Cell, string> cell_color = {
-    {Cell::Hidden, "238"},
-    {Cell::Active, "255"},
-    {Cell::FigureT, "105"},
-    {Cell::FigureS, "10"},
-    {Cell::FigureZ, "160"},
-    {Cell::FigureL, "208"},
-    {Cell::FigureJ, "75"},
-    {Cell::FigureI, "123"},
-    {Cell::FigureO, "220"},
-    {Cell::Border, "247"}
-};
-
-void print_cell(const Cell& cell) {
-    if (cell == Cell::Empty) {
-        cout << "  ";
-    } else {
-        cout << "\033[48:5:" + cell_color.at(cell) + "m  \033[m";
-    }
-}
-
-/*
-Следую DRY, все данные для figure не разбрасываю по всей программе, мы храним централизованно тут
-*/
-struct Figure {
-    vector<vector<int>> model;
-    Cell color;
-};
-
-const vector<Figure> FIGURES = {
-    {{{0, 1, 0},
-      {1, 1, 1}}, FigureT},
-
-    {{{0, 1, 1},
-      {1, 1, 0}}, FigureS},
-
-    {{{1, 1, 0},
-      {0, 1, 1}}, FigureZ},
-
-    {{{1, 1, 1},
-      {1, 0, 0}}, FigureL},
-
-    {{{1, 0, 0},
-      {1, 1, 1}}, FigureJ},
-
-    {{{1, 1, 1, 1}}, FigureI},
-
-    {{{1, 1},
-      {1, 1}}, FigureO}
-};
-
-// YAGNI - убрали из конструкторов классов все лишние переменные, которые скорее всего всегда будут браться те, что по умолчанию
-class Map {
-private:
-    int x_map;
-    int y_map;
-    int buffer_layers = 2;
-
-    vector<vector<Cell>> map;
-
-public:
-    Map(
-        int height = 7,
-        int width = 5
-    ): 
-        x_map(width),
-        y_map(height)
-    {
-        if (height <= 0 || width <= 0) {
-            cout << "Wrong map dimensions!" << endl;
-            exit(1);
-        }
-        make_empty_map(map, y_map + buffer_layers, x_map);
-    }
-
-    void print_map() {
-        cout << endl;
-        for (int x = 0; x < x_map + 2; ++x) {
-            print_cell(Cell::Border);
-        }
-        cout << endl;
-        for (const auto& row : map) {
-            print_cell(Cell::Border);
-            for (Cell cell : row) {
-                print_cell(cell);
+class Map{
+    public:
+        bool get_figure_exist(){return figure_exist;}
+        bool get_alive(){return alive;}
+        void render(){
+            cout<<endl;
+            for(int i = 0; i< x_map+2; i++){
+                printf("\033[48:5:247m  \033[m");
             }
-            print_cell(Cell::Border);
-            cout << endl;
+            cout<<endl;
+            for(int y = 0; y<y_map+2; y++){
+                printf("\033[48:5:247m  \033[m");
+                for(int x = 0; x<x_map; x++){
+                    switch(map[y][x]){
+                        case 0:{
+                            printf("\033[48:5:238m  \033[m");
+                            break;
+                        }
+                        case 1:{
+                            cout<<"  ";
+                            break;
+                        }
+                        case 2:{
+                            printf("\033[48:5:255m  \033[m");
+                            break;
+                        }
+                        case 3:{
+                            printf("\033[48:5:105m  \033[m");
+                            break;
+                        }
+                        case 4:{
+                            printf("\033[48:5:10m  \033[m");
+                            break;
+                        }
+                        case 5:{
+                            printf("\033[48:5:160m  \033[m");
+                            break;
+                        }
+                        case 6:{
+                            printf("\033[48:5:208m  \033[m");
+                            break;
+                        }
+                        case 7:{
+                            printf("\033[48:5:75m  \033[m");
+                            break;
+                        }
+                        case 8:{
+                            printf("\033[48:5:123m  \033[m");
+                            break;
+                        }
+                        case 9:{
+                            printf("\033[48:5:220m  \033[m");
+                            break;
+                        }
+                    }
+                }
+                printf("\033[48:5:247m  \033[m");
+                cout<<endl;
+            }
+            for(int i = 0; i< x_map+2; i++){
+                printf("\033[48:5:247m  \033[m");
+            }
+            cout<<endl;
         }
-        for (int x = 0; x < x_map + 2; ++x) {
-            print_cell(Cell::Border);
-        }
-        cout << endl;
-    }
-
-    int clear_full_layers() {
-        vector<vector<Cell>> cleared_map;
-        make_empty_map(cleared_map, y_map + buffer_layers, x_map);
-        for (int y = 0; y < buffer_layers; ++y) {
-            cleared_map[y] = map[y];
-        }
-        int target_y = y_map + buffer_layers - 1;
-        int count_layers = 0;
-        for (int y = target_y; y >= buffer_layers; --y) {
-            // YAGNI и KISS, внесто того, чтобы писать свою функцию на один раз, используем из стандартной библиотеки
-            const bool full = all_of(map[y].begin(), map[y].end(), is_fixed);
-            if (full) {
-                count_layers++;
-            } else {
-                cleared_map[target_y--] = map[y];
+        void make_figure(){
+            figure_exist = 1;
+            x_coords = 0;
+            y_coords = 0;
+            color = step+3;
+            switch(step){
+                case 0: //T
+                    step++;
+                    x_model = 3;
+                    y_model = 2;
+                    model = {{0,1,0},
+                             {1,1,1}};
+                    map[0][1] = 2;
+                    map[1][0] = 2;
+                    map[1][1] = 2;
+                    map[1][2] = 2;
+                    break;
+                case 1: //S
+                    step++;
+                    x_model = 3;
+                    y_model = 2;
+                    model = {{0,1,1},
+                             {1,1,0}};
+                    map[0][1] = 2;
+                    map[0][2] = 2;
+                    map[1][0] = 2;
+                    map[1][1] = 2;
+                    break;
+                case 2: //Z
+                    step++;
+                    x_model = 3;
+                    y_model = 2;
+                    model = {{1,1,0},
+                             {0,1,1}};
+                    map[0][0] = 2;
+                    map[0][1] = 2;
+                    map[1][1] = 2;
+                    map[1][2] = 2;
+                    break;
+                case 3: //L
+                    step++;
+                    x_model = 3;
+                    y_model = 2;
+                    model = {{1,1,1},
+                             {1,0,0}};
+                    map[0][0] = 2;
+                    map[0][1] = 2;
+                    map[0][2] = 2;
+                    map[1][0] = 2;
+                    break;
+                case 4: //J
+                    step++;
+                    x_model = 3;
+                    y_model = 2;
+                    model = {{1,0,0},
+                             {1,1,1}};
+                    map[0][0] = 2;
+                    map[1][0] = 2;
+                    map[1][1] = 2;
+                    map[1][2] = 2;
+                    break;
+                case 5: //I
+                    step++;
+                    x_model = 4;
+                    y_model = 1;
+                    model = {{1,1,1,1}};
+                    map[0][0] = 2;
+                    map[0][1] = 2;
+                    map[0][2] = 2;
+                    map[0][3] = 2;
+                    break;
+                case 6: //O
+                    step=0;
+                    x_model = 2;
+                    y_model = 2;
+                    model = {{1,1},
+                             {1,1}};
+                    map[0][0] = 2;
+                    map[0][1] = 2;
+                    map[1][0] = 2;
+                    map[1][1] = 2;
+                    break;
             }
         }
-        map = cleared_map;
-        return count_layers;
-    }
-
-    static bool is_fixed(Cell cell) {
-        return cell >= Cell::FigureT && cell <= Cell::FigureO;
-    }
-
-    void make_empty_map(vector<vector<Cell>>& some_map, int y_size, int x_size){
-        some_map.resize(y_size);
-        for(int i = 0; i<y_size; i++){
-            some_map[i] = vector<Cell>(x_size, (i < buffer_layers) ? Cell::Hidden : Cell::Empty);
-        }
-    }
-
-    bool can_place(const vector<vector<int>>& candidate, int left, int top) const {
-        const int height = candidate.size();
-        const int width = candidate[0].size();
-        if (left < 0 || top < 0 || left + width > x_map ||
-            top + height > y_map + buffer_layers) {
-            return false;
-        }
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                if (candidate[y][x] && is_fixed(map[top + y][left + x])) {
-                    return false;
+        void right(){
+            if(x_coords+x_model<x_map){
+                bool k = 1;
+                for(int y = 0; y<y_model; y++){
+                    for(int x = 0; x<x_model; x++){
+                        if(model[y][x] == 1 and map[y_coords+y][x_coords+x+1] >= 3){
+                            k = 0;
+                            break;
+                        }
+                    }
+                }
+                if(k==1){
+                    for(int y = 0; y<y_model; y++){
+                        for(int x = 0; x<x_model; x++){
+                            if(model[y_model-y-1][x_model-x-1] == 1){
+                                cout<<5<<endl;
+                                if(y_coords+y_model-y-1<2){
+                                    map[y_coords+y_model-y-1][x_coords+x_model-x-1] = 0;
+                                }
+                                else{map[y_coords+y_model-y-1][x_coords+x_model-x-1] = 1;}
+                                map[y_coords+y_model-y-1][x_coords+x_model-x] = 2;
+                            }
+                        }
+                    }
+                    x_coords++;
                 }
             }
         }
-        return true;
-    }
-
-    void draw_figure(const Figure& figure, int y_coords, int x_coords, Cell cell) {
-        for (int y = 0; y < figure.model.size(); ++y) {
-            for (int x = 0; x < figure.model[y].size(); ++x) {
-                if (figure.model[y][x]) {
-                    map[y_coords + y][x_coords + x] = cell;
+        void left(){
+            if(x_coords>0){
+                bool k = 1;
+                for(int y = 0; y<y_model; y++){
+                    for(int x = 0; x<x_model; x++){
+                        if(model[y][x] == 1 and map[y_coords+y][x_coords+x-1] >= 3){
+                            k = 0;
+                            break;
+                        }
+                    }
+                }
+                if(k==1){
+                    for(int y = 0; y<y_model; y++){
+                        for(int x = 0; x<x_model; x++){
+                            if(model[y][x] == 1){
+                                if(y_coords+y<2){
+                                    map[y_coords+y][x_coords+x] = 0;
+                                }
+                                else{map[y_coords+y][x_coords+x] = 1;}
+                                map[y_coords+y][x_coords+x-1] = 2;
+                            }
+                        }
+                    }
+                    x_coords--;
                 }
             }
         }
-    }
-
-    void erase_figure(const Figure& figure, int y_coords, int x_coords) {
-        for (int y = 0; y < figure.model.size(); ++y) {
-            for (int x = 0; x < figure.model[y].size(); ++x) {
-                if (figure.model[y][x]) {
-                    map[y_coords + y][x_coords + x] =
-                        y_coords + y < buffer_layers ? Cell::Hidden : Cell::Empty;
+        void fall(){
+            if(y_coords+y_model<y_map+2){
+                bool k = 1;
+                for(int y = 0; y<y_model; y++){
+                    for(int x = 0; x<x_model; x++){
+                        if(model[y][x] == 1 and map[y_coords+y+1][x_coords+x] >= 3){
+                            k = 0;
+                            break;
+                        }
+                    }
+                }
+                if(k==1){
+                    for(int y = 0; y<y_model; y++){
+                        for(int x = 0; x<x_model; x++){
+                            if(model[y_model-y-1][x] == 1){
+                                if(y_coords+y_model-y-1<2){
+                                    map[y_coords+y_model-y-1][x_coords+x] = 0;
+                                }
+                                else{map[y_coords+y_model-y-1][x_coords+x] = 1;}
+                                map[y_coords+y_model-y][x_coords+x] = 2;
+                            }
+                        }
+                    }
+                    y_coords++;
+                }
+                else{
+                    if(y_coords>1){
+                        for(int y = 0; y<y_model; y++){
+                            for(int x = 0; x<x_model; x++){
+                                if(model[y][x] == 1){
+                                    map[y_coords+y][x_coords+x] = color;
+                                }
+                            }
+                        }
+                        figure_exist = 0;
+                        points++;
+                    }
+                    else{
+                        alive = 0;
+                    }
+                }
+            }
+            else{
+                if(y_coords>1){
+                    for(int y = 0; y<y_model; y++){
+                        for(int x = 0; x<x_model; x++){
+                            if(model[y][x] == 1){
+                                map[y_coords+y][x_coords+x] = color;
+                            }
+                        }
+                    }
+                    figure_exist = 0;
+                    points++;
+                }
+                else{
+                    alive = 0;
                 }
             }
         }
-    }
-
-    // Возвращаем, живы ли еще
-    bool fix_figure(const Figure& figure, int x_coords, int y_coords) {
-        if (y_coords < buffer_layers) {
-            return false;
+        void clear_full_layers(){
+            bool k;
+            vector<vector<int>> ret = {{0,0,0,0,0},
+                                       {0,0,0,0,0},
+                                       {1,1,1,1,1},
+                                       {1,1,1,1,1},
+                                       {1,1,1,1,1},
+                                       {1,1,1,1,1},
+                                       {1,1,1,1,1},
+                                       {1,1,1,1,1},
+                                       {1,1,1,1,1}};
+            int i_y = y_map+1;
+            for(int y = 0; y<2; y++){
+                for(int x = 0; x<x_map; x++){
+                    ret[y][x] = map[y][x];
+                }
+            }
+            for(int y = 0; y<y_map; y++){
+                k = 1;
+                for(int x = 0; x<x_map; x++){
+                    if(map[y_map-y+1][x]<3){
+                        k = 0;
+                        break;
+                    }
+                }
+                if(k==1){
+                    points+=10;
+                }
+                else{
+                    ret[i_y] = map[y_map-y+1];
+                    i_y--; 
+                }
+            }
+            
+            map = ret;
         }
-        draw_figure(figure, y_coords, x_coords, figure.color);
-        return true;
-    }
-};
-
-/*
-Для следования KISS мы разделили один большой и тяжелый для понимания класс Map на два:
-- Map отвечает за саму карту
-- Engine отвечает за логику игры
-*/
-class Engine {
-    int points_per_figure = 1;
-    int points_per_layer = 10;
-
+        int get_points(){return points;}
+        void turn_right(){
+            if(x_coords+y_model<=x_map){
+                bool k = 1;
+                int ret [x_model][y_model];
+                for(int y = 0; y<y_model; y++){
+                    for(int x = 0; x<x_model; x++){
+                        if(model[y][x] == 1 and map[y_coords+x][x_coords+y_model-y-1]>2){
+                            k = 0;
+                            break;
+                        }
+                        else{
+                            ret[x][y_model-y-1] = model[y][x];
+                        }
+                    }
+                }
+                if(k==1){
+                    for(int y = 0; y<y_model; y++){
+                        for(int x = 0; x<x_model;x++){
+                            if(y_coords+y<2){
+                                map[y_coords+y][x_coords+x] = 0;
+                            }
+                            else{
+                                map[y_coords+y][x_coords+x] = 1;
+                            }
+                        }
+                    }
+                    int delta = x_model;
+                    x_model = y_model;
+                    y_model = delta;
+                    model.resize(y_model);
+                    for(int y = 0; y<y_model; y++){
+                        model[y].resize(x_model);
+                        for(int x = 0; x<x_model; x++){
+                            model[y][x] = ret[y][x];
+                            if(model[y][x] == 1){
+                                map[y_coords+y][x_coords+x] = 2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        void turn_left(){
+            bool k = 1;
+            int ret [x_model][y_model];
+            for(int y = 0; y<y_model; y++){
+                for(int x = 0; x<x_model; x++){
+                    if(model[y][x] == 1 and map[y_coords+x_model-x-1][x_coords+y]>2){
+                        k = 0;
+                        break;
+                    }
+                    else{
+                        ret[x_model-x-1][y] = model[y][x];
+                    }
+                }
+            }
+            if(k==1){
+                for(int y = 0; y<y_model; y++){
+                    for(int x = 0; x<x_model;x++){
+                        if(y_coords+y<2){
+                            map[y_coords+y][x_coords+x] = 0;
+                        }
+                        else{
+                            map[y_coords+y][x_coords+x] = 1;
+                        }
+                    }
+                }
+                int delta = x_model;
+                x_model = y_model;
+                y_model = delta;
+                model.resize(y_model);
+                for(int y = 0; y<y_model; y++){
+                    model[y].resize(x_model);
+                    for(int x = 0; x<x_model; x++){
+                        model[y][x] = ret[y][x];
+                        if(model[y][x] == 1){
+                            map[y_coords+y][x_coords+x] = 2;
+                        }
+                    }
+                }
+            }
+        }
+        void fall_down(){
+            while(figure_exist == 1 and alive == 1){
+                fall();
+            }
+        }
+    private:
     int points = 0;
-    bool alive = true;
-    bool figure_exist = false;
-    int x_coords = 0;
-    int y_coords = 0;
-
-    Map map;
-    Figure figure;
-
-    size_t step = 0;
-
-    void turn(bool clockwise) {
-        if (!figure_exist || !alive) {
-            return;
-        }
-
-        const int height = figure.model.size();
-        const int width = figure.model[0].size();
-        vector<vector<int>> rotated(width, vector<int>(height));
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                if (clockwise) {
-                    rotated[x][height - y - 1] = figure.model[y][x];
-                } else {
-                    rotated[width - x - 1][y] = figure.model[y][x];
-                }
-            }
-        }
-        // Если поворот невозможен, оставляем фигуру в том же положении что и до этого, иначе:
-        if (map.can_place(rotated, x_coords, y_coords)) {
-            map.erase_figure(figure, y_coords, x_coords);
-            figure.model = rotated;
-            map.draw_figure(figure, y_coords, x_coords, Cell::Active);
-        }
-    }
-
-    bool try_move(int dx, int dy) {
-        if (!map.can_place(figure.model, x_coords + dx, y_coords + dy)) {
-            return false;
-        }
-        map.erase_figure(figure, y_coords, x_coords);
-        x_coords += dx;
-        y_coords += dy;
-        map.draw_figure(figure, y_coords, x_coords, Cell::Active);
-        return true;
-    }
-
-public:
-    bool get_figure_exist() { return figure_exist; }
-    bool get_alive() { return alive; }
-    int get_points() { return points; }
-
-    void make_figure() {
-        if (figure_exist || !alive) {
-            return;
-        }
-        figure = FIGURES[step];
-        x_coords = 0;
-        y_coords = 0;
-        if (!map.can_place(figure.model, x_coords, y_coords)) {
-            alive = false;
-            return;
-        }
-        step = (step + 1) % FIGURES.size();
-        figure_exist = true;
-        map.draw_figure(figure, y_coords, x_coords, Cell::Active);
-    }
-
-    // direction: влево = -1, вправо = 1
-    void move(int direction) {
-        if (direction != -1 && direction != 1) {
-            cout << "Invalid direction!" << endl;
-            exit(1);
-        }
-        if (figure_exist && alive) {
-            try_move(direction, 0);
-        }
-    }
-
-    void turn_right() { turn(true); }
-    void turn_left() { turn(false); }
-
-    // Это упасть вниз на 1 слой
-    void fall() {
-        if (!figure_exist || !alive) {
-            return;
-        }
-        if (!try_move(0, 1)) {
-            if (map.fix_figure(figure, x_coords, y_coords)) {
-                figure_exist = false;
-                points += points_per_figure;
-            } else {
-                alive = false;
-            }
-
-        }
-    }
-
-    // Это упасть вниз с концами
-    void fall_down() {
-        while (figure_exist && alive) {
-            fall();
-        }
-    }
-
-    void end_iteration() {
-        points += map.clear_full_layers() * points_per_layer;
-        system("clear");
-        map.print_map();
-    }
-};
-
-// Ради KISS мы вынесли таймер в отдельный класс, а то иначе понять что происходит было трудно
-class StepsCounter {
-    int upper_bound_timer; // Раз в сколько кол-во шагов уменьшается
-    int upper_bound_steps; //Сколько шагов по горизонтали можно сделать
-
-    int current_timer; //Текущий таймер для игры
-    int current_steps; //Сколько шагов по горизонтали можно сделать сейчас
-public:
-    StepsCounter(
-        int input_steps = 5,
-        int input_timer = 15
-    ) : upper_bound_timer(input_timer),
-        upper_bound_steps(input_steps),
-        current_timer(input_timer),
-        current_steps(input_steps)
-    {}
-
-    void tick() { current_timer--; }
-
-    int get_timer() { return current_timer; }
-    int get_steps() { return current_steps; }
-
-    void reset_steps() {
-        current_steps = upper_bound_steps;
-    }
-
-    // Возвращаем, произошло ли принудительное падение
-    bool make_step(){
-        if(current_timer <= 0){
-            upper_bound_steps = max(1, upper_bound_steps - 1);
-            current_timer = upper_bound_timer;
-            current_steps = min(current_steps, upper_bound_steps);
-        }
-        tick();
-        if(current_steps <= 0){
-            current_steps = upper_bound_steps;
-            return true;
-        }
-        current_steps--;
-        return false;
-    }
+    bool alive = 1;
+    bool figure_exist = 0;
+    int x_map = 5;
+    int y_map = 7;
+    vector<vector<int>> map = {{0,0,0,0,0},
+                               {0,0,0,0,0},
+                               {1,1,1,1,1},
+                               {1,1,1,1,1},
+                               {1,1,1,1,1},
+                               {1,1,1,1,1},
+                               {1,1,1,1,1},
+                               {1,1,1,1,1},
+                               {1,1,1,1,1}};
+    int x_model;
+    int y_model;
+    int x_coords;
+    int y_coords;
+    vector<vector<int>> model;
+    int color;
+    
+    int step = 0;
 };
 
 int main()
 {
-    Engine engine;
-
-    StepsCounter stepCounter;
-
+    Map m;
+    int const_steps = 10; //Сколько шагов по горизонтали можно сделать сейчас
+    int const_timer = 8;
+    int timer = const_timer; //Раз в сколько кол-во шагов уменьшается
+    int steps = const_steps; //Сколько шагов по горизонтали можно сделать
     char move;
-    cout << "A - влево, S - Вниз на 1 слой, D - Вправо, W - В самый низ" << endl;
-    cout << "Введите что-нибудь, чтобы продолжить"<<endl;
-    if (!(cin >> move)) { return 0; }
-    while(engine.get_alive() == 1){
-        cout<<"Очков набранно " << engine.get_points() << endl;
-        cout<<"Шагов осталось " << stepCounter.get_steps() << endl;
-        cout<<"Меньше шагов через " << stepCounter.get_timer() << endl;
-        if(!engine.get_figure_exist()){ // KISS: Зачем проверять false, через == 0, если можно проверить через !
-            engine.make_figure();
-            stepCounter.reset_steps();
+    cout<<"A - влево, S - Вниз на 1 слой, D - Вправо, W - В самый низ"<<endl;
+    cout<<"Введите что-нибудь, чтобы продолжить"<<endl;
+    cin>>move;
+    while(m.get_alive() == 1){
+        cout<<"Очков набранно "<<m.get_points()<<endl;
+        cout<<"Шагов осталось "<<steps<<endl;
+        cout<<"Меньше шагов через "<<timer<<endl;
+        if(m.get_figure_exist() == 0){
+            m.make_figure();
+            steps = const_steps;
         }
         else{
-            if(stepCounter.make_step()){
-                engine.fall();
+            if(timer <= 0){
+                timer=const_timer;
+                const_steps--;
+            }
+            if(steps <= 0){
+                m.fall();
+                steps = const_steps;
             }
             else{
-                if (!(cin >> move)) { return 0; }
+                steps--;
+                cin>>move;
                 switch(move){
                     case 'd':{
-                        engine.move(1);
+                        m.right();
                         break;
                     }
                     case 'a':{
-                        engine.move(-1);
+                        m.left();
                         break;
                     }
                     case 'q':{
-                        engine.turn_left();
+                        m.turn_left();
                         break;
                     }
                     case 'e':{
-                        engine.turn_right();
+                        m.turn_right();
                         break;
                     }
                     case 's':{
-                        // KISS: Тут зачем-то отдельно были расчеты с таймером и шагами, зачем уменьшать их только тут, непонятно
-                        engine.fall();
+                        m.fall();
+                        if(timer == 0 and const_steps > 1){
+                            const_steps--;
+                            timer = const_timer;
+                            steps = const_steps;
+                        }
+                        else{
+                            timer--;
+                            steps = const_steps;
+                        }
                         break;
                     }
                     case 'w':{
-                        engine.fall_down();
+                        timer--;
+                        m.fall_down();
                     }
                 }
                 
             }
         }
-        engine.end_iteration();
+        m.clear_full_layers();
+        system("clear");
+        m.render();
     }
-    cout << "ВСЁ" << endl;
-    cout << "Вы набрали " << engine.get_points() << " очков" << endl;
-    return 0;
+    cout<<"ВСЁ"<<endl;
+    cout<<"Вы набрали "<<m.get_points()<<" очков"<<endl;
 }
