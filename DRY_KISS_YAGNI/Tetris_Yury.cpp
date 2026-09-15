@@ -11,7 +11,6 @@
 
 using namespace std;
 
-// KISS: вместо bool turn(true)/turn(false), enum с понятными именами.
 enum TurnDirection
 {
     Clockwise,
@@ -74,10 +73,6 @@ vector<Figure> figures = {
 class Map
 {
 public:
-    /*
-    YAGNI: не стал открывать totalHeight() наружу через публичный метод,
-    он нужен только внутри Map (в inBounds и render).
-    */
     bool inBounds(int y, int x) const
     {
         return y >= 0 && y < totalHeight() && x >= 0 && x < width;
@@ -162,10 +157,6 @@ public:
 private:
     int totalHeight() const { return hidden + height; }
 
-    /*
-    YAGNI: не стал вводить отдельную структуру Size для width/height/hidden.
-    Трёх int достаточно, структура, это усложнение ради красоты.
-    */
     int width = 5;
     int height = 7;
     int hidden = 2;
@@ -266,10 +257,6 @@ private:
     bool hasFigure = false;
     int nextFigure = 0;
 
-    /*
-    YAGNI: не стал вводить структуры Position{x, y} и Size{w, h}.
-    Двух пар int достаточно, отдельные структуры, это усложнение без пользы.
-    */
     int shapeWidth = 0;
     int shapeHeight = 0;
     int figureX = 0;
@@ -405,10 +392,6 @@ int main()
     Map gameMap;
     GameRules game(gameMap);
 
-    /*
-    YAGNI: ввод остаётся char, а не string или enum Command.
-    Игрок жмёт одну клавишу, char хватает, усложнять тип нет смысла.
-    */
     int steps = 10;
     int timer = 8;
     char move;
