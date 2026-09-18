@@ -20,14 +20,24 @@ struct LCG {
         state = _seed;
         srand(_seed);
     }
-    int generate_100(){
+    virtual int generate_100(){
         int r = rand();
         if(r < 0){ r *= -1; }
         r = r%101;
         return r;
     }
-    int generate_t_p(){
-        int r = generate_100();
+};
+
+
+/*
+Нарушение LSP:
+Родитель использует весь диапазон 0..100, а наследники ограничены 1..6
+*/
+struct LCG_t_p : public LCG {
+    using LCG::LCG;
+
+    int generate_100() override {
+        int r = LCG::generate_100();
         if(r < 25){
             return 1;
         }
@@ -45,8 +55,13 @@ struct LCG {
         }
         return 6;
     }
-    int generate_t_obr(){
-        int r = generate_100();
+};
+
+struct LCG_t_obr : public LCG {
+    using LCG::LCG;
+
+    int generate_100() override {
+        int r = LCG::generate_100();
         if(r < 6){
             return 1;
         }

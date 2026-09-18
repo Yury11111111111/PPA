@@ -1,7 +1,7 @@
 #include <iostream>
 #include <deque>
 #include <string>
-#include "LCG.h"
+#include "LCG_Liskov.h"
 
 using namespace std;
 
@@ -10,13 +10,13 @@ long long check_copy(LCG& lcg, int check_size){
 
         deque<int> check_order;
         for(int i=0; i<check_size; i++){
-                check_order.push_back(lcg.generate_100());
+                check_order.push_back(lcg.generate_time());
         }
 
         deque<int> gen_order = check_order;
         for(long long i = 1; ; i++){
                 gen_order.pop_front();
-                gen_order.push_back(lcg.generate_100());
+                gen_order.push_back(lcg.generate_time());
 
                 if( check_order == gen_order){
                         return i;

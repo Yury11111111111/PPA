@@ -12,7 +12,6 @@ random_device rd;
 mt19937 gen(rd());
 
 struct LCG {
-    virtual int generate() = 0;
     int state;
     LCG(){}
     void addSeed(int _seed){
@@ -29,12 +28,15 @@ struct LCG {
         r = r%101;
         return r;
     }
+    virtual int generate_time() {
+        return generate_100();
+    }
 };
 
 struct LCG_t_p : public LCG {
     using LCG::LCG;
 
-    int generate() override {
+    int generate_time() override {
         int r = generate_100();
         if(r < 25){
             return 1;
@@ -58,7 +60,7 @@ struct LCG_t_p : public LCG {
 struct LCG_t_obr : public LCG { 
     using LCG::LCG;
 
-    int generate() override {
+    int generate_time() override {
         int r = generate_100();
         if(r < 6){
             return 1;
