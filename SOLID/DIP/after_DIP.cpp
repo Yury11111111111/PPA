@@ -183,6 +183,25 @@ public:
     void error(const string &message) { log(message, Level::Error); }
 };
 
+function PrintAll()
+{
+    PrintAll(Logger & logger) : logger(logger) {}
+
+    switch (logger)
+    {
+    case logger == dbLogger:
+        cout << "=== Writing to Database ===" << endl;
+        logger.info("Application started");
+        logger.warn("Cache is almost full");
+    case logger == Logger jsonLogger(json);:
+        cout << "\n=== Writing to JSON file ===" << endl;
+        logger.info("Application started");
+        logger.warn("Cache is almost full");
+        logger.error("Failed to connect to payment service");
+    
+    return "UNKNOWN";
+};
+
 int main()
 {
     // Только здесь мы знаем про конкретные классы
@@ -195,22 +214,9 @@ int main()
     Logger dbLogger(db);
     Logger jsonLogger(json);
 
-    // Захотим добавить CloudStorage - просто напишем новый класс
-    // и добавим одну строчку здесь. Logger не трогаем
 
-    cout << "=== Writing to Database ===" << endl;
-    dbLogger.info("Application started");
-    dbLogger.warn("Cache is almost full");
-
-    cout << "\n=== Writing to JSON file ===" << endl;
-    jsonLogger.info("Application started");
-    jsonLogger.warn("Cache is almost full");
-    jsonLogger.error("Failed to connect to payment service");
-
-    // count() вызываем через конкретные объекты, потому что в интерфейсе его нет
-    // Logger'у он и не нужен
-    cout << "\nTotal DB records:   " << db.count() << endl;
-    cout << "Total JSON records: " << json.count() << endl;
+    PrintAll(dbLogger);
+    PrintAll(jsonLogger);
 
     return 0;
 }
