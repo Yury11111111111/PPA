@@ -152,15 +152,15 @@ int main() {
         } else if (cmd == 'f' || cmd == 'F') {
             game.toggleFlag(r, c);
         } else {
-            std::cout << "Неизвестная команда.\n";
+            std::cout << "Неизвестная команда\n";
         }
     }
 
     game.print();
     if (game.isWin()) {
-        std::cout << "\n🎉 Победа! Все мины найдены.\n";
+        std::cout << "\nBig Win! Все мины найдены\n";
     } else {
-        std::cout << "\n💥 Бум! Вы наступили на мину.\n";
+        std::cout << "\nПупупу! Вы наступили на мину(\n";
     }
     return 0;
 }
