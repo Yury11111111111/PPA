@@ -3,95 +3,59 @@
 
 using namespace std;
 
-// Абстрактные продукты — 4 интерфейса
+// 4 абстрактных продукта
 class Button {
 public:
     virtual ~Button() {}
-    virtual void paint() const = 0;
+    virtual void render() const = 0;
 };
 
 class Checkbox {
 public:
     virtual ~Checkbox() {}
-    virtual void paint() const = 0;
+    virtual void render() const = 0;
 };
 
 class Scrollbar {
 public:
     virtual ~Scrollbar() {}
-    virtual void paint() const = 0;
+    virtual void render() const = 0;
 };
 
 class TextField {
 public:
     virtual ~TextField() {}
-    virtual void paint() const = 0;
+    virtual void render() const = 0;
 };
 
-// Семейство Windows — 4 конкретных продукта
-class WindowsButton : public Button {
-public:
-    void paint() const override { cout << "Windows button" << endl; }
-};
+// Windows — 4 продукта
+class WindowsButton    : public Button    { public: void render() const override { cout << "Windows button" << endl; } };
+class WindowsCheckbox  : public Checkbox  { public: void render() const override { cout << "Windows checkbox" << endl; } };
+class WindowsScrollbar : public Scrollbar { public: void render() const override { cout << "Windows scrollbar" << endl; } };
+class WindowsTextField : public TextField { public: void render() const override { cout << "Windows textfield" << endl; } };
 
-class WindowsCheckbox : public Checkbox {
-public:
-    void paint() const override { cout << "Windows checkbox" << endl; }
-};
+// Mac — 4 продукта
+class MacButton    : public Button    { public: void render() const override { cout << "Mac button" << endl; } };
+class MacCheckbox  : public Checkbox  { public: void render() const override { cout << "Mac checkbox" << endl; } };
+class MacScrollbar : public Scrollbar { public: void render() const override { cout << "Mac scrollbar" << endl; } };
+class MacTextField : public TextField { public: void render() const override { cout << "Mac textfield" << endl; } };
 
-class WindowsScrollbar : public Scrollbar {
-public:
-    void paint() const override { cout << "Windows scrollbar" << endl; }
-};
+// Linux — 4 продукта
+class LinuxButton    : public Button    { public: void render() const override { cout << "Linux button" << endl; } };
+class LinuxCheckbox  : public Checkbox  { public: void render() const override { cout << "Linux checkbox" << endl; } };
+class LinuxScrollbar : public Scrollbar { public: void render() const override { cout << "Linux scrollbar" << endl; } };
+class LinuxTextField : public TextField { public: void render() const override { cout << "Linux textfield" << endl; } };
 
-class WindowsTextField : public TextField {
-public:
-    void paint() const override { cout << "Windows text field" << endl; }
-};
+// Android — 4 продукта
+class AndroidButton    : public Button    { public: void render() const override { cout << "Android button" << endl; } };
+class AndroidCheckbox  : public Checkbox  { public: void render() const override { cout << "Android checkbox" << endl; } };
+class AndroidScrollbar : public Scrollbar { public: void render() const override { cout << "Android scrollbar" << endl; } };
+class AndroidTextField : public TextField { public: void render() const override { cout << "Android textfield" << endl; } };
 
-// Семейство Mac — 4 конкретных продукта
-class MacButton : public Button {
-public:
-    void paint() const override { cout << "Mac button" << endl; }
-};
-
-class MacCheckbox : public Checkbox {
-public:
-    void paint() const override { cout << "Mac checkbox" << endl; }
-};
-
-class MacScrollbar : public Scrollbar {
-public:
-    void paint() const override { cout << "Mac scrollbar" << endl; }
-};
-
-class MacTextField : public TextField {
-public:
-    void paint() const override { cout << "Mac text field" << endl; }
-};
-
-// Семейство Linux — 4 конкретных продукта
-class LinuxButton : public Button {
-public:
-    void paint() const override { cout << "Linux button" << endl; }
-};
-
-class LinuxCheckbox : public Checkbox {
-public:
-    void paint() const override { cout << "Linux checkbox" << endl; }
-};
-
-class LinuxScrollbar : public Scrollbar {
-public:
-    void paint() const override { cout << "Linux scrollbar" << endl; }
-};
-
-class LinuxTextField : public TextField {
-public:
-    void paint() const override { cout << "Linux text field" << endl; }
-};
-
-// Абстрактная фабрика — создаёт все 4 продукта семейства
+// Абстрактная фабрика.
+// Слабость паттерна: чтобы добавить новый продукт (например Menu),
+// придётся править сам этот интерфейс и все конкретные фабрики ниже.
+// Зато добавить новую ОС дёшево: интерфейс не трогается.
 class GUIFactory {
 public:
     virtual ~GUIFactory() {}
@@ -101,7 +65,9 @@ public:
     virtual TextField* createTextField() const = 0;
 };
 
-// Конкретные фабрики
+// Конкретные фабрики.
+// Добавить новую ОС — создать ещё одну фабрику, старые не трогаются.
+// Добавить новый продукт — придётся дописать метод в каждой из этих фабрик.
 class WindowsFactory : public GUIFactory {
 public:
     Button*    createButton()    const override { return new WindowsButton(); }
@@ -126,27 +92,34 @@ public:
     TextField* createTextField() const override { return new LinuxTextField(); }
 };
 
-// Клиент — знает только про абстракции
+class AndroidFactory : public GUIFactory {
+public:
+    Button*    createButton()    const override { return new AndroidButton(); }
+    Checkbox*  createCheckbox()  const override { return new AndroidCheckbox(); }
+    Scrollbar* createScrollbar() const override { return new AndroidScrollbar(); }
+    TextField* createTextField() const override { return new AndroidTextField(); }
+};
+
+// Клиент не знает ни про одну ОС
+// Здесь нет ни if/else, ни упоминаний Windows, Mac, Linux, Android
+// Новая ОС: этот класс не меняется вообще, только создаётся новая фабрика
+// Новый продукт: сюда добавляется одна строка, но придётся править интерфейс GUIFactory и все конкретные фабрики
 class Application {
 public:
     Application(const GUIFactory& factory) : factory(factory) {}
 
     void render() const {
-        Button* btn = factory.createButton();
-        btn->paint();
-        delete btn;
+        Button*    b = factory.createButton();
+        Checkbox*  c = factory.createCheckbox();
+        Scrollbar* s = factory.createScrollbar();
+        TextField* t = factory.createTextField();
 
-        Checkbox* cb = factory.createCheckbox();
-        cb->paint();
-        delete cb;
+        b->render();
+        c->render();
+        s->render();
+        t->render();
 
-        Scrollbar* sb = factory.createScrollbar();
-        sb->paint();
-        delete sb;
-
-        TextField* tf = factory.createTextField();
-        tf->paint();
-        delete tf;
+        delete b; delete c; delete s; delete t;
     }
 
 private:
@@ -154,19 +127,8 @@ private:
 };
 
 int main() {
-    WindowsFactory windowsFactory;
-    Application windowsApp(windowsFactory);
-    windowsApp.render();
-
-    cout << endl;
-
-    MacFactory macFactory;
-    Application macApp(macFactory);
-    macApp.render();
-
-    cout << endl;
-
-    LinuxFactory linuxFactory;
-    Application linuxApp(linuxFactory);
-    linuxApp.render();
+    WindowsFactory wf; Application app1(wf); app1.render();
+    MacFactory     mf; Application app2(mf); app2.render();
+    LinuxFactory   lf; Application app3(lf); app3.render();
+    AndroidFactory af; Application app4(af); app4.render();
 }

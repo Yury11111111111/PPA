@@ -1,60 +1,68 @@
 #include <iostream>
 #include <string>
-#include <windows.h>
 
 using namespace std;
 
-// 12 конкретных классов. Клиент знает про каждый.
-class WindowsButton    { public: void paint() { cout << "Windows button" << endl; } };
-class WindowsCheckbox  { public: void paint() { cout << "Windows checkbox" << endl; } };
-class WindowsScrollbar { public: void paint() { cout << "Windows scrollbar" << endl; } };
-class WindowsTextField { public: void paint() { cout << "Windows text field" << endl; } };
+// 16 конкретных классов. Клиент знает про каждый.
+class WindowsButton    { public: void render() { cout << "Windows button" << endl; } };
+class WindowsCheckbox  { public: void render() { cout << "Windows checkbox" << endl; } };
+class WindowsScrollbar { public: void render() { cout << "Windows scrollbar" << endl; } };
+class WindowsTextField { public: void render() { cout << "Windows textfield" << endl; } };
 
-class MacButton    { public: void paint() { cout << "Mac button" << endl; } };
-class MacCheckbox  { public: void paint() { cout << "Mac checkbox" << endl; } };
-class MacScrollbar { public: void paint() { cout << "Mac scrollbar" << endl; } };
-class MacTextField { public: void paint() { cout << "Mac text field" << endl; } };
+class MacButton    { public: void render() { cout << "Mac button" << endl; } };
+class MacCheckbox  { public: void render() { cout << "Mac checkbox" << endl; } };
+class MacScrollbar { public: void render() { cout << "Mac scrollbar" << endl; } };
+class MacTextField { public: void render() { cout << "Mac textfield" << endl; } };
 
-class LinuxButton    { public: void paint() { cout << "Linux button" << endl; } };
-class LinuxCheckbox  { public: void paint() { cout << "Linux checkbox" << endl; } };
-class LinuxScrollbar { public: void paint() { cout << "Linux scrollbar" << endl; } };
-class LinuxTextField { public: void paint() { cout << "Linux text field" << endl; } };
+class LinuxButton    { public: void render() { cout << "Linux button" << endl; } };
+class LinuxCheckbox  { public: void render() { cout << "Linux checkbox" << endl; } };
+class LinuxScrollbar { public: void render() { cout << "Linux scrollbar" << endl; } };
+class LinuxTextField { public: void render() { cout << "Linux textfield" << endl; } };
 
-// Клиент. Четыре метода, в каждом — цепочка if/else по ОС.
+class AndroidButton    { public: void render() { cout << "Android button" << endl; } };
+class AndroidCheckbox  { public: void render() { cout << "Android checkbox" << endl; } };
+class AndroidScrollbar { public: void render() { cout << "Android scrollbar" << endl; } };
+class AndroidTextField { public: void render() { cout << "Android textfield" << endl; } };
+
 class Application {
 public:
-    void renderButton(const string& os) {
-        if (os == "windows")      { WindowsButton b;    b.paint(); }
-        else if (os == "mac")     { MacButton b;        b.paint(); }
-        else if (os == "linux")   { LinuxButton b;      b.paint(); }
-    }
+    void render(const string& os) {
+        cout << "=== " << os << " ===" << endl;
 
-    void renderCheckbox(const string& os) {
-        if (os == "windows")      { WindowsCheckbox c;  c.paint(); }
-        else if (os == "mac")     { MacCheckbox c;      c.paint(); }
-        else if (os == "linux")   { LinuxCheckbox c;    c.paint(); }
-    }
-
-    void renderScrollbar(const string& os) {
-        if (os == "windows")      { WindowsScrollbar s; s.paint(); }
-        else if (os == "mac")     { MacScrollbar s;     s.paint(); }
-        else if (os == "linux")   { LinuxScrollbar s;   s.paint(); }
-    }
-
-    void renderTextField(const string& os) {
-        if (os == "windows")      { WindowsTextField t; t.paint(); }
-        else if (os == "mac")     { MacTextField t;     t.paint(); }
-        else if (os == "linux")   { LinuxTextField t;   t.paint(); }
+        // 4 ветки, в каждой по 4 создания. Итого 16 строк.
+        // Добавить 5-ю ОС: писать ещё 4 строки в этом же методе.
+        // Добавить 5-й продукт: добавлять по строке в каждую из 4 ветвей.
+        if (os == "windows") {
+            WindowsButton b;    b.render();
+            WindowsCheckbox c;  c.render();
+            WindowsScrollbar s; s.render();
+            WindowsTextField t; t.render();
+        }
+        else if (os == "mac") {
+            MacButton b;    b.render();
+            MacCheckbox c;  c.render();
+            MacScrollbar s; s.render();
+            MacTextField t; t.render();
+        }
+        else if (os == "linux") {
+            LinuxButton b;    b.render();
+            LinuxCheckbox c;  c.render();
+            LinuxScrollbar s; s.render();
+            LinuxTextField t; t.render();
+        }
+        else if (os == "android") {
+            AndroidButton b;    b.render();
+            AndroidCheckbox c;  c.render();
+            AndroidScrollbar s; s.render();
+            AndroidTextField t; t.render();
+        }
     }
 };
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
-    system("chcp 65001 > nul");
-
     Application app;
-    app.renderButton("windows");
-    app.renderCheckbox("windows");
-    app.renderScrollbar("mac");
-    app.renderTextField("linux");
+    app.render("windows");
+    app.render("mac");
+    app.render("linux");
+    app.render("android");
 }
