@@ -78,31 +78,24 @@ public:
     }
 };
 
-class HamsterHomeDirector {
-public:
-    static void build_basic(HamsterHomeBuilder& builder) {
-        builder.add_bedding(20)
-               .add_wheel(28)
-               .add_water_bottle()
-               .add_hideout("Деревянный домик");
-    }
-    static void build_with_tunnels(HamsterHomeBuilder& builder) {
-        build_basic(builder);
-        builder.add_sand_bath()
-               .add_hideout("Керамическое укрытие")
-               .add_tunnel("Пробковый тоннель")
-               .add_tunnel("Картонный тоннель");
-    }
-};
-
 int main() {
-    HamsterHomeBuilder basic_builder("Домик Плюши", 100, 50);
-    HamsterHomeDirector::build_basic(basic_builder);
-    const HamsterHome basic = basic_builder.build();
+    const HamsterHome basic = HamsterHomeBuilder("Домик Плюши", 100, 50)
+        .add_bedding(20)
+        .add_wheel(28)
+        .add_water_bottle()
+        .add_hideout("Деревянный домик")
+        .build();
 
-    HamsterHomeBuilder tunnel_builder("Домик Бублика", 100, 50);
-    HamsterHomeDirector::build_with_tunnels(tunnel_builder);
-    const HamsterHome tunnels = tunnel_builder.build();
+    const HamsterHome tunnels = HamsterHomeBuilder("Домик Бублика", 100, 50)
+        .add_bedding(20)
+        .add_wheel(28)
+        .add_water_bottle()
+        .add_hideout("Деревянный домик")
+        .add_sand_bath()
+        .add_hideout("Керамическое укрытие")
+        .add_tunnel("Пробковый тоннель")
+        .add_tunnel("Картонный тоннель")
+        .build();
 
     basic.print();
     tunnels.print();
