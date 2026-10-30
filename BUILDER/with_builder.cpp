@@ -6,7 +6,6 @@
 
 class HamsterHomeBuilder;
 
-// Product: готовый домик для хомяка.
 class HamsterHome {
     friend class HamsterHomeBuilder;
 
@@ -32,7 +31,6 @@ public:
     }
 };
 
-// Builder: накапливает части домика и выдает проверенный результат.
 class HamsterHomeBuilder {
     HamsterHome home_;
 
@@ -80,7 +78,6 @@ public:
     }
 };
 
-// Director: два стандартных рецепта для свежего строителя.
 class HamsterHomeDirector {
 public:
     static void build_basic(HamsterHomeBuilder& builder) {
