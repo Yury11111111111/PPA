@@ -1,167 +1,113 @@
-#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
-class DeploymentPlanBuilder;
+class HamsterHomeBuilder;
 
-class DeploymentPlan {
+// Product: готовый домик для хомяка.
+class HamsterHome {
+    friend class HamsterHomeBuilder;
+
+    HamsterHome(std::string name, int width, int length)
+        : name_(std::move(name)), width_(width), length_(length) {}
+
+    std::string name_;
+    int width_, length_;
+    int bedding_depth_ = 0;
+    int wheel_diameter_ = 0;
+    bool has_water_ = false;
+    bool has_sand_bath_ = false;
+    std::vector<std::string> hideouts_, tunnels_;
+
 public:
     void print() const {
-        std::cout << service_ << " -> " << environment_
-                  << ", artifact: " << artifact_
-                  << ", rollout stages: " << rollout_percentages_.size()
-                  << ", rollback: " << (rollback_command_.empty() ? "no" : "yes")
-                  << '\n';
-    }
-
-private:
-    friend class DeploymentPlanBuilder;
-
-    std::string service_;
-    std::string environment_;
-    std::string artifact_;
-    std::vector<std::string> prechecks_;
-    std::string migration_script_;
-    std::vector<int> rollout_percentages_;
-    std::vector<std::string> smoke_tests_;
-    std::string rollback_command_;
-    std::vector<std::string> notification_channels_;
-    bool require_manual_approval_ = false;
-};
-
-class DeploymentPlanBuilder {
-public:
-    DeploymentPlanBuilder(
-        std::string service,
-        std::string environment,
-        std::string artifact
-    ) {
-        plan_.service_ = std::move(service);
-        plan_.environment_ = std::move(environment);
-        plan_.artifact_ = std::move(artifact);
-    }
-
-    DeploymentPlanBuilder& add_precheck(std::string check) {
-        plan_.prechecks_.push_back(std::move(check));
-        return *this;
-    }
-
-    DeploymentPlanBuilder& run_migration(std::string script) {
-        plan_.migration_script_ = std::move(script);
-        return *this;
-    }
-
-    DeploymentPlanBuilder& rollout_in_stages(std::vector<int> percentages) {
-        plan_.rollout_percentages_ = std::move(percentages);
-        return *this;
-    }
-
-    DeploymentPlanBuilder& add_smoke_test(std::string test) {
-        plan_.smoke_tests_.push_back(std::move(test));
-        return *this;
-    }
-
-    DeploymentPlanBuilder& rollback_with(std::string command) {
-        plan_.rollback_command_ = std::move(command);
-        return *this;
-    }
-
-    DeploymentPlanBuilder& notify(std::string channel) {
-        plan_.notification_channels_.push_back(std::move(channel));
-        return *this;
-    }
-
-    DeploymentPlanBuilder& require_manual_approval() {
-        plan_.require_manual_approval_ = true;
-        return *this;
-    }
-
-    DeploymentPlan build() const {
-        validate();
-        return plan_;
-    }
-
-private:
-    DeploymentPlan plan_;
-
-    void validate() const {
-        if (plan_.service_.empty() || plan_.environment_.empty() || plan_.artifact_.empty()) {
-            throw std::invalid_argument("service, environment and artifact are required");
-        }
-        if (plan_.rollout_percentages_.empty() ||
-            plan_.rollout_percentages_.back() != 100) {
-            throw std::invalid_argument("rollout must finish at 100 percent");
-        }
-        if (!std::is_sorted(
-                plan_.rollout_percentages_.begin(),
-                plan_.rollout_percentages_.end())) {
-            throw std::invalid_argument("rollout percentages must be ordered");
-        }
-        if (plan_.environment_ == "production") {
-            if (plan_.rollback_command_.empty()) {
-                throw std::invalid_argument("production deployment requires rollback");
-            }
-            if (!plan_.require_manual_approval_) {
-                throw std::invalid_argument("production deployment requires approval");
-            }
-            if (plan_.smoke_tests_.empty()) {
-                throw std::invalid_argument("production deployment requires smoke tests");
-            }
-        }
+        std::cout << name_ << ": основание " << width_ << 'x' << length_
+                  << ", подстилка " << bedding_depth_ << ", колесо " << wheel_diameter_
+                  << ", вода: " << (has_water_ ? "да" : "нет")
+                  << ", песочная ванна: " << (has_sand_bath_ ? "да" : "нет") << '\n';
+        for (const auto& item : hideouts_) std::cout << "  Укрытие: " << item << '\n';
+        for (const auto& item : tunnels_) std::cout << "  Тоннель: " << item << '\n';
     }
 };
 
-// Director хранит только действительно повторяемые стандартные рецепты.
-class DeploymentPlanDirector {
+// Builder: накапливает части домика и выдает проверенный результат.
+class HamsterHomeBuilder {
+    HamsterHome home_;
+
 public:
-    static DeploymentPlan staging(
-        const std::string& service,
-        const std::string& artifact
-    ) {
-        return DeploymentPlanBuilder(service, "staging", artifact)
-            .add_precheck("config is valid")
-            .rollout_in_stages({100})
-            .add_smoke_test("GET /health returns 200")
-            .build();
+    HamsterHomeBuilder(std::string name, int width, int length)
+        : home_(std::move(name), width, length) {}
+
+    HamsterHomeBuilder& add_bedding(int depth) {
+        home_.bedding_depth_ = depth;
+        return *this;
+    }
+    HamsterHomeBuilder& add_wheel(int diameter) {
+        home_.wheel_diameter_ = diameter;
+        return *this;
+    }
+    HamsterHomeBuilder& add_water_bottle() {
+        home_.has_water_ = true;
+        return *this;
+    }
+    HamsterHomeBuilder& add_sand_bath() {
+        home_.has_sand_bath_ = true;
+        return *this;
+    }
+    HamsterHomeBuilder& add_hideout(std::string name) {
+        if (name.empty()) throw std::invalid_argument("Укрытие должно иметь название");
+        home_.hideouts_.push_back(std::move(name));
+        return *this;
+    }
+    HamsterHomeBuilder& add_tunnel(std::string name) {
+        if (name.empty()) throw std::invalid_argument("Тоннель должен иметь название");
+        home_.tunnels_.push_back(std::move(name));
+        return *this;
     }
 
-    static DeploymentPlan production(
-        const std::string& service,
-        const std::string& artifact,
-        const std::string& previous_artifact,
-        const std::string& migration_script
-    ) {
-        return DeploymentPlanBuilder(service, "production", artifact)
-            .add_precheck("config is valid")
-            .add_precheck("error budget is available")
-            .run_migration(migration_script)
-            .rollout_in_stages({5, 25, 50, 100})
-            .add_smoke_test("GET /health returns 200")
-            .add_smoke_test("test payment succeeds")
-            .rollback_with("deploy " + previous_artifact)
-            .notify("payments-team")
-            .notify("support")
-            .require_manual_approval()
-            .build();
+    HamsterHome build() const {
+        if (home_.name_.empty() || home_.width_ <= 0 || home_.length_ <= 0 ||
+            home_.bedding_depth_ <= 0 || home_.wheel_diameter_ <= 0 ||
+            !home_.has_water_ || home_.hideouts_.empty()) {
+            throw std::invalid_argument("Нужны имя, размеры, подстилка, колесо, вода и укрытие");
+        }
+        if (home_.wheel_diameter_ > home_.width_ || home_.wheel_diameter_ > home_.length_) {
+            throw std::invalid_argument("Колесо не помещается по правилам модели");
+        }
+        return home_;
+    }
+};
+
+// Director: два стандартных рецепта для свежего строителя.
+class HamsterHomeDirector {
+public:
+    static void build_basic(HamsterHomeBuilder& builder) {
+        builder.add_bedding(20)
+               .add_wheel(28)
+               .add_water_bottle()
+               .add_hideout("Деревянный домик");
+    }
+    static void build_with_tunnels(HamsterHomeBuilder& builder) {
+        build_basic(builder);
+        builder.add_sand_bath()
+               .add_hideout("Керамическое укрытие")
+               .add_tunnel("Пробковый тоннель")
+               .add_tunnel("Картонный тоннель");
     }
 };
 
 int main() {
-    const DeploymentPlan staging = DeploymentPlanDirector::staging(
-        "payments",
-        "payments:2.4.0"
-    );
+    HamsterHomeBuilder basic_builder("Домик Плюши", 100, 50);
+    HamsterHomeDirector::build_basic(basic_builder);
+    const HamsterHome basic = basic_builder.build();
 
-    const DeploymentPlan production = DeploymentPlanDirector::production(
-        "payments",
-        "payments:2.4.0",
-        "payments:2.3.1",
-        "migrations/2026_10_add_payment_status.sql"
-    );
+    HamsterHomeBuilder tunnel_builder("Домик Бублика", 100, 50);
+    HamsterHomeDirector::build_with_tunnels(tunnel_builder);
+    const HamsterHome tunnels = tunnel_builder.build();
 
-    staging.print();
-    production.print();
+    basic.print();
+    tunnels.print();
+    return 0;
 }
