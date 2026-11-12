@@ -39,7 +39,6 @@ namespace utils {
         }
         return out;
     }
-
 }
 
 class ITelemetrySender {
@@ -56,6 +55,8 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Базовый декоратор. Держит указатель на обёрнутый объект.
+// Позволяет строить цепочки любой длины без правок базовых классов.
 class SenderDecorator : public ITelemetrySender {
 protected:
     std::unique_ptr<ITelemetrySender> wrappee_;
@@ -66,6 +67,7 @@ public:
     void send(const std::string& data) override { wrappee_->send(data); }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.validate — независимый класс (SRP).
 class ValidationDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -77,6 +79,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.rateLimit.
 class RateLimitDecorator : public SenderDecorator {
     int count_ = 0;
     int limit_;
@@ -90,6 +93,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.toJson.
 class JsonDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -98,6 +102,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.compress.
 class CompressionDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -106,6 +111,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.encrypt.
 class EncryptionDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -116,6 +122,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.addJwt.
 class AuthTokenDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -124,6 +131,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.log.
 class LoggingDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -133,6 +141,7 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Вместо флага cfg.metrics.
 class MetricsDecorator : public SenderDecorator {
 public:
     using SenderDecorator::SenderDecorator;
@@ -145,6 +154,8 @@ public:
     }
 };
 
+// [РЕШЕНИЕ] Сборка пайплайна из независимых "кубиков". 
+// Чтобы поменять порядок — просто меняем порядок оберток (OCP).
 std::unique_ptr<ITelemetrySender> buildFullPipeline() {
     std::unique_ptr<ITelemetrySender> s = std::make_unique<NetworkSender>();
     s = std::make_unique<LoggingDecorator>(std::move(s));
@@ -158,6 +169,8 @@ std::unique_ptr<ITelemetrySender> buildFullPipeline() {
     return s;
 }
 
+// [РЕШЕНИЕ] Смена порядка: Encrypt -> Compress. 
+// В монолите для этого пришлось бы переписывать метод Send.
 std::unique_ptr<ITelemetrySender> buildEncryptThenCompressPipeline() {
     std::unique_ptr<ITelemetrySender> s = std::make_unique<NetworkSender>();
     s = std::make_unique<LoggingDecorator>(std::move(s));
@@ -169,6 +182,7 @@ std::unique_ptr<ITelemetrySender> buildEncryptThenCompressPipeline() {
     return s;
 }
 
+// [РЕШЕНИЕ] Разные каналы: просто другая сборка, без копипасты (в отличие от SendForDebug).
 std::unique_ptr<ITelemetrySender> buildCriticalPipeline() {
     std::unique_ptr<ITelemetrySender> s = std::make_unique<NetworkSender>();
     s = std::make_unique<AuthTokenDecorator>(std::move(s));

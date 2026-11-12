@@ -14,7 +14,9 @@ struct TelemetryConfig {
     bool rateLimit = false;
 };
 
-// God Class: знает и умеет всё сразу.
+// [ПРОБЛЕМА] God Class: знает и умеет всё сразу.
+// Любое изменение порядка шагов или добавление нового канала 
+// требует правки этого монолитного класса (нарушение OCP).
 class MonolithicTelemetrySender {
     int requestCount = 0;
 
@@ -57,7 +59,8 @@ public:
         auto start = std::chrono::high_resolution_clock::now();
         std::string data = rawLog;
 
-        // Порядок зашит в код.
+        // [ПРОБЛЕМА] Жесткая последовательность. Чтобы поменять местами 
+        // шифрование и сжатие, придется переписывать этот метод.
         if (cfg.rateLimit) {
             if (++requestCount > 3) throw std::runtime_error("Rate limit exceeded!");
         }
@@ -88,6 +91,9 @@ public:
         }
     }
 
+    // [ПРОБЛЕМА] Дублирование кода ради "немного другого" канала.
+    // Завтра попросят канал с шифрованием, но без сжатия — и 
+    // придется копипастить этот метод еще раз.
     void SendForDebug(const std::string& rawLog) {
         std::string data = rawLog;
         if (data.empty()) throw std::invalid_argument("empty log");
@@ -119,8 +125,30 @@ int main() {
         std::cerr << "Ошибка: " << e.what() << "\n";
     }
 
-    std::cout << "\n=== Монолит: отдельный debug-канал ===\n";
+    std::cout << "\n=== Тест 3: валидация обрывает цепочку ===\n";
     try {
+        sender.Send("ERROR: something went wrong", cfg);
+    } catch (const std::exception& e) {
+        std::cerr << "Исключение: " << e.what() << "\n";
+    }
+
+    std::cout << "\n=== Тест 4: rate limit ===\n";
+    for (int i = 1; i <= 4; ++i) {
+        std::cout << "-- отправка #" << i << "\n";
+        try {
+            sender.Send("ping " + std::to_string(i), cfg);
+        } catch (const std::exception& e) {
+            std::cerr << "Исключение: " << e.what() << "\n";
+        }
+    }
+
+    std::cout << "\n=== Тест 5: разные каналы без правок класса ===\n";
+    try {
+        std::cout << "[critical] "; 
+        TelemetryConfig criticalCfg; criticalCfg.addJwt = true; criticalCfg.encrypt = true; criticalCfg.validate = true;
+        sender.Send("payment approved", criticalCfg);
+
+        std::cout << "[debug]    "; 
         sender.SendForDebug("cache hit");
     } catch (const std::exception& e) {
         std::cerr << "Ошибка: " << e.what() << "\n";
